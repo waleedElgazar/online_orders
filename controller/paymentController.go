@@ -2,6 +2,8 @@ package controller
 
 import (
 	"fmt"
+	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/charge"
 	"os"
 	"strconv"
 	"time"
@@ -19,6 +21,21 @@ func PayForOrder(ctx *fiber.Ctx) error {
 		fmt.Println("error while parsing data", err)
 		return err
 	}
+	stripe.Key=os.Getenv("ApiKey")
+
+	_,err=charge.New(&stripe.ChargeParams{
+		Amount: stripe.Int64(int64(data.Amount)),
+		Currency:     stripe.String(string(stripe.CurrencyUSD)),
+		Source:       &stripe.SourceParams{Token: stripe.String("tok_visa")},
+		ReceiptEmail: stripe.String(os.Getenv("ToUser")),
+	})
+	if err != nil {
+		ctx.Status(fiber.StatusBadRequest)
+		return ctx.JSON(
+			fiber.Map{
+				"message":"failed",
+			})
+	}
 	currentTime := time.Now()
 	payment := models.Payment{
 		PaymentDate: currentTime.Format("2006.01.02 15:04:05"),
@@ -28,7 +45,7 @@ func PayForOrder(ctx *fiber.Ctx) error {
 		Amount:      data.Amount,
 	}
 	err = database.AddPaymentForOrder(payment)
-	SendPaymentNotification("walidreda428@gmail.com",payment)
+	SendPaymentNotification(os.Getenv("ToUser"),payment)
 	if err != nil {
 		ctx.Status(fiber.ErrBadRequest.Code)
 		return ctx.JSON(
