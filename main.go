@@ -7,6 +7,10 @@ import (
 	"github.com/waleedElgazar/resturant/routes"
 	"log"
 )
+func welcome(ctx *fiber.Ctx) error {
+	ctx.Write([]byte("hello"))
+	return nil
+}
 
 func main() {
 	err := godotenv.Load()
@@ -15,6 +19,7 @@ func main() {
 	}
 	configration.OpenConnection()
 	app := fiber.New()
+	app.Post("/",welcome)
 	routes.UserSetUp(app)
 	routes.OrderSetUp(app)
 	routes.PaymentSetUp(app)

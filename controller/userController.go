@@ -146,7 +146,7 @@ func VerifyAccount(ctx *fiber.Ctx) error {
 			fiber.Map{
 				"message":"verification failed ",
 			},
-			)
+		)
 	}
 	return ctx.JSON(
 		fiber.Map{
